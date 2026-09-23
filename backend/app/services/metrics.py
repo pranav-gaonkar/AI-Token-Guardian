@@ -23,11 +23,16 @@ def calculate_comparison_metrics(
     else:
         latency_reduction_pct = None
 
+    cost_saved_usd = round(max(0, token_saved) * 0.00001, 4)
+    cost_saved_10k_usd = round(cost_saved_usd * 10000.0, 2)
+
     return ComparisonMetrics(
         llm_calls_avoided=llm_avoided,
         tool_calls_avoided=tool_avoided,
         token_saved=token_saved if token_saved > 0 else 0,
         token_reduction_percentage=token_reduction_pct,
         latency_diff_ms=latency_diff_ms,
-        latency_reduction_percentage=latency_reduction_pct
+        latency_reduction_percentage=latency_reduction_pct,
+        estimated_cost_saved_usd=cost_saved_usd,
+        estimated_cost_saved_10k_usd=cost_saved_10k_usd
     )

@@ -1,18 +1,82 @@
-import React from 'react';
-import { BarChart3, TrendingDown, Zap, Layers, Cpu } from 'lucide-react';
+import React, { useState } from 'react';
+import { BarChart3, TrendingDown, DollarSign, Share2, Check, Zap } from 'lucide-react';
 
 export default function MetricsComparison({ comparisonData }) {
+  const [copied, setCopied] = useState(false);
+
   if (!comparisonData) return null;
 
-  const { baseline_naive, optimized_jev, comparison } = comparisonData;
+  const { task, baseline_naive, optimized_jev, comparison } = comparisonData;
   const naive = baseline_naive.metrics;
   const jev = optimized_jev.metrics;
 
+  const costSaved10k = comparison.estimated_cost_saved_10k_usd || (comparison.token_saved * 0.1).toFixed(2);
+  const tokenRedPct = comparison.token_reduction_percentage ?? 0;
+
+  const handleCopyPost = () => {
+    const postText = 
+`🚀 AI Token Guardian Benchmark Result
+
+Task: "${task}"
+
+📊 Performance Comparison:
+❌ Naive Baseline Agent:
+   - LLM Calls: ${naive.groq_calls}
+   - Estimated Tokens: ${naive.total_estimated_tokens}
+   - Latency: ${naive.latency_ms} ms
+
+✅ JEV Decision Agent (Bounded):
+   - LLM Calls: ${jev.groq_calls} ${jev.groq_calls === 0 ? '(Avoided!)' : ''}
+   - Estimated Tokens: ${jev.total_estimated_tokens}
+   - Latency: ${jev.latency_ms} ms
+
+💡 Efficiency Gains:
+   - Token Reduction: ${tokenRedPct}%
+   - LLM Calls Avoided: ${comparison.llm_calls_avoided}
+   - Estimated Cost Savings: ~$${costSaved10k} per 10k requests!
+
+Built using System One JEV Decision Framework + Multi-Provider LLM Router (Groq / Gemini / OpenAI).
+🔗 GitHub: https://github.com/pranav-gaonkar/AI-Token-Guardian`;
+
+    navigator.clipboard.writeText(postText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
+  };
+
+  const maxTokens = Math.max(1, naive.total_estimated_tokens, jev.total_estimated_tokens);
+  const naiveTokenWidth = Math.min(100, Math.max(10, (naive.total_estimated_tokens / maxTokens) * 100));
+  const jevTokenWidth = Math.min(100, Math.max(5, (jev.total_estimated_tokens / maxTokens) * 100));
+
+  const maxLatency = Math.max(1, naive.latency_ms, jev.latency_ms);
+  const naiveLatencyWidth = Math.min(100, Math.max(10, (naive.latency_ms / maxLatency) * 100));
+  const jevLatencyWidth = Math.min(100, Math.max(5, (jev.latency_ms / maxLatency) * 100));
+
   return (
     <div className="card">
-      <div className="card-title">
-        <BarChart3 size={18} style={{ color: 'var(--emerald-accent)' }} />
-        Measured Comparison: Naive Baseline vs Jev Decision Agent
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
+        <div className="card-title" style={{ margin: 0 }}>
+          <BarChart3 size={18} style={{ color: 'var(--emerald-accent)' }} />
+          Measured Comparison: Naive Baseline vs Jev Decision Agent
+        </div>
+
+        <button
+          type="button"
+          className="pill-btn"
+          onClick={handleCopyPost}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            background: copied ? 'rgba(16, 185, 129, 0.2)' : 'rgba(99, 102, 241, 0.15)',
+            borderColor: copied ? 'var(--emerald-accent)' : 'var(--border-highlight)',
+            color: copied ? 'var(--emerald-accent)' : '#fff',
+            fontWeight: '600',
+            padding: '0.4rem 0.85rem'
+          }}
+        >
+          {copied ? <Check size={14} /> : <Share2 size={14} />}
+          {copied ? 'Copied LinkedIn Snippet!' : 'Copy LinkedIn Post Snippet'}
+        </button>
       </div>
 
       <div className="savings-banner">
@@ -28,18 +92,54 @@ export default function MetricsComparison({ comparisonData }) {
 
         <div className="savings-stat">
           <div className="savings-num">
-            {comparison.token_reduction_percentage !== null
-              ? `${comparison.token_reduction_percentage}%`
-              : '0%'}
+            {tokenRedPct}%
           </div>
           <div className="savings-label">Token Reduction</div>
         </div>
 
         <div className="savings-stat">
-          <div className="savings-num">
-            {comparison.latency_diff_ms > 0 ? `-${comparison.latency_diff_ms} ms` : `${comparison.latency_diff_ms} ms`}
+          <div className="savings-num" style={{ color: 'var(--cyan-accent)' }}>
+            ~${costSaved10k}
           </div>
-          <div className="savings-label">Latency Difference</div>
+          <div className="savings-label">Est. Savings / 10k Requests</div>
+        </div>
+      </div>
+
+      <div style={{
+        background: 'rgba(0, 0, 0, 0.2)',
+        border: '1px solid var(--border-color)',
+        borderRadius: '10px',
+        padding: '1rem',
+        marginBottom: '1.5rem'
+      }}>
+        <div style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+          📊 Visual Metrics Breakdown
+        </div>
+
+        <div style={{ marginBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '0.25rem' }}>
+            <span>Total Estimated Tokens</span>
+            <span>Naive: <strong>{naive.total_estimated_tokens}</strong> vs Jev: <strong style={{ color: 'var(--emerald-accent)' }}>{jev.total_estimated_tokens}</strong></span>
+          </div>
+          <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden', display: 'flex', gap: '2px' }}>
+            <div style={{ width: `${naiveTokenWidth}%`, background: 'var(--rose-accent)', height: '100%', borderRadius: '4px' }} title={`Naive Tokens: ${naive.total_estimated_tokens}`}></div>
+          </div>
+          <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden', marginTop: '4px' }}>
+            <div style={{ width: `${jevTokenWidth}%`, background: 'var(--emerald-accent)', height: '100%', borderRadius: '4px' }} title={`Jev Tokens: ${jev.total_estimated_tokens}`}></div>
+          </div>
+        </div>
+
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '0.25rem' }}>
+            <span>Execution Latency (ms)</span>
+            <span>Naive: <strong>{naive.latency_ms}ms</strong> vs Jev: <strong style={{ color: 'var(--cyan-accent)' }}>{jev.latency_ms}ms</strong></span>
+          </div>
+          <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+            <div style={{ width: `${naiveLatencyWidth}%`, background: 'rgba(244, 63, 94, 0.7)', height: '100%', borderRadius: '4px' }} title={`Naive Latency: ${naive.latency_ms}ms`}></div>
+          </div>
+          <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden', marginTop: '4px' }}>
+            <div style={{ width: `${jevLatencyWidth}%`, background: 'var(--cyan-accent)', height: '100%', borderRadius: '4px' }} title={`Jev Latency: ${jev.latency_ms}ms`}></div>
+          </div>
         </div>
       </div>
 
@@ -56,7 +156,7 @@ export default function MetricsComparison({ comparisonData }) {
               <span>{naive.openjev_calls}</span>
             </div>
             <div className="comp-metric-row">
-              <span>Groq LLM Calls:</span>
+              <span>Groq / LLM Calls:</span>
               <span style={{ color: 'var(--rose-accent)', fontWeight: 'bold' }}>{naive.groq_calls}</span>
             </div>
             <div className="comp-metric-row">
@@ -94,7 +194,7 @@ export default function MetricsComparison({ comparisonData }) {
               <span style={{ color: 'var(--cyan-accent)' }}>{jev.openjev_calls}</span>
             </div>
             <div className="comp-metric-row">
-              <span>Groq LLM Calls:</span>
+              <span>Groq / LLM Calls:</span>
               <span style={{ color: jev.groq_calls === 0 ? 'var(--emerald-accent)' : '#fff', fontWeight: 'bold' }}>
                 {jev.groq_calls} {jev.groq_calls === 0 ? '(Avoided!)' : ''}
               </span>

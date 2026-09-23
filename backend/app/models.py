@@ -62,6 +62,8 @@ class ComparisonMetrics(BaseModel):
     token_reduction_percentage: Optional[float] = None
     latency_diff_ms: float = 0.0
     latency_reduction_percentage: Optional[float] = None
+    estimated_cost_saved_usd: float = 0.0
+    estimated_cost_saved_10k_usd: float = 0.0
 
 class ComparisonResult(BaseModel):
     task: str
