@@ -10,8 +10,65 @@ logger = logging.getLogger(__name__)
 
 _http_client: Optional[httpx.AsyncClient] = None
 
+def get_fastpath_decision(task: str) -> Optional[JevDecisionResponse]:
+    t_lower = task.lower().strip()
+    
+    math_words = ["calculate", "multiply", "divide", "plus", "minus", "sum", "what is"]
+    has_digits = any(char.isdigit() for char in task)
+    has_operators = any(op in task for op in ["*", "/", "+", "%"])
+    is_calc = (any(w in t_lower for w in math_words) and has_digits) or (has_digits and has_operators)
+    
+    search_words = ["weather", "current", "stock", "price", "latest", "today", "news"]
+    is_search = any(w in t_lower for w in search_words)
+
+    has_explanation = any(w in t_lower for w in ["explain", "why", "how does", "describe", "detail"])
+
+    if is_calc and not is_search:
+        needs_llm = has_explanation or len(t_lower) > 60
+        return JevDecisionResponse(
+            needs_external_information=False,
+            required_tool="calculator",
+            needs_llm=needs_llm,
+            needs_verification=False,
+            task_complexity=0.2 if not needs_llm else 0.5,
+            raw_answers={"fastpath": True, "required_tool": "calculator", "needs_llm": needs_llm},
+            decision_source="OpenJEV Fast-Path",
+            fallback_occurred=False
+        )
+
+    if is_search and not is_calc:
+        return JevDecisionResponse(
+            needs_external_information=True,
+            required_tool="web_search",
+            needs_llm=True,
+            needs_verification=False,
+            task_complexity=0.6,
+            raw_answers={"fastpath": True, "required_tool": "web_search", "needs_llm": True},
+            decision_source="OpenJEV Fast-Path",
+            fallback_occurred=False
+        )
+
+    if not is_calc and not is_search and has_explanation:
+        return JevDecisionResponse(
+            needs_external_information=False,
+            required_tool="none",
+            needs_llm=True,
+            needs_verification=False,
+            task_complexity=0.4,
+            raw_answers={"fastpath": True, "required_tool": "none", "needs_llm": True},
+            decision_source="OpenJEV Fast-Path",
+            fallback_occurred=False
+        )
+
+    return None
+
 async def evaluate_task_with_openjev(task: str) -> Tuple[JevDecisionResponse, float]:
     start_time = time.time()
+
+    fast_decision = get_fastpath_decision(task)
+    if fast_decision:
+        latency_ms = (time.time() - start_time) * 1000
+        return fast_decision, max(0.5, round(latency_ms, 2))
 
     if not settings.has_openjev_key:
         logger.info("OPENJEV_API_KEY is not configured. Utilizing local heuristic fallback decision rules.")

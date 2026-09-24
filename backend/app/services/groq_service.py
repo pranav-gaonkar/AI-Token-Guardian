@@ -25,11 +25,19 @@ async def generate_with_llm(
     
     context_str = f"User Request: {user_request}\n"
     if tool_results:
-        context_str += f"\nTool Results: {tool_results}"
-    if jev_decisions and isinstance(jev_decisions, dict):
-        tool = jev_decisions.get("required_tool", "none")
-        if tool != "none":
-            context_str += f"\nAction Context: Used tool '{tool}'"
+        clean_tools = []
+        if "calculator" in tool_results:
+            c = tool_results["calculator"]
+            if c.get("success"):
+                clean_tools.append(f"Math Result: {c.get('formatted_result')}")
+        if "web_search" in tool_results:
+            s = tool_results["web_search"]
+            res_list = s.get("results", [])
+            snippets = " | ".join([r.get("snippet", "") for r in res_list[:2]])
+            if snippets:
+                clean_tools.append(f"Search Snippets: {snippets}")
+        if clean_tools:
+            context_str += "Context:\n" + "\n".join(clean_tools) + "\n"
 
     if (selected_provider == "openai" or not settings.has_groq_key) and settings.has_openai_key:
         try:
