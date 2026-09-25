@@ -39,7 +39,6 @@ async def generate_with_llm(
         if clean_tools:
             context_str += "Context:\n" + "\n".join(clean_tools) + "\n"
 
-    # 1. Attempt selected provider strictly first
     if selected_provider == "openai":
         if settings.has_openai_key:
             res = await _call_openai(system_prompt, context_str, start_time)
@@ -65,7 +64,6 @@ async def generate_with_llm(
                 return res
             return f"Groq API call failed. Please check your GROQ_API_KEY in .env.", {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}, (time.time() - start_time) * 1000
 
-    # 2. General Fallbacks if provider was not specified
     if settings.has_gemini_key:
         res, _ = await _call_gemini(system_prompt, context_str, start_time)
         if res:
@@ -81,7 +79,6 @@ async def generate_with_llm(
         if res:
             return res
 
-    # 3. Fallback to mock response if no provider keys available
     mock_output = generate_mock_groq_response(user_request, tool_results)
     latency_ms = (time.time() - start_time) * 1000
     tokens = {
@@ -136,7 +133,6 @@ async def _call_gemini(system_prompt: str, context_str: str, start_time: float) 
         "gemini-3.5-flash",
         "gemini-3.1-pro-preview"
     ]
-    # Remove duplicates while preserving order
     models_to_try = []
     for m in candidate_models:
         if m and m not in models_to_try:

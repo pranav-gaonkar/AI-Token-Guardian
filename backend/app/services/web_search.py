@@ -8,13 +8,11 @@ async def search_web(query: str) -> Dict[str, Any]:
     cleaned_query = query.strip()
     q_lower = cleaned_query.lower()
     
-    # 1. Check if query is weather-related -> Use Open-Meteo Live Weather API (100% Free, No Key)
     if "weather" in q_lower or "temp" in q_lower or "temperature" in q_lower:
         weather_res = await fetch_live_weather(cleaned_query)
         if weather_res:
             return weather_res
 
-    # 2. Try DuckDuckGo Instant Answers API
     try:
         async with httpx.AsyncClient(timeout=4.0) as client:
             resp = await client.get(
@@ -43,7 +41,6 @@ async def search_web(query: str) -> Dict[str, Any]:
     except Exception as e:
         logger.warning(f"Live web search error: {str(e)}")
 
-    # 3. Fallback to Open Web Data
     simulated_snippets = generate_simulated_search_results(cleaned_query)
     return {
         "query": cleaned_query,
@@ -55,7 +52,6 @@ async def search_web(query: str) -> Dict[str, Any]:
 
 async def fetch_live_weather(query: str) -> Optional[Dict[str, Any]]:
     try:
-        # Extract location city name from query
         words = query.split()
         city = "Tokyo"
         ignore = ["find", "the", "current", "weather", "in", "today", "now", "what", "is", "temperature", "forecast", "at", "for"]

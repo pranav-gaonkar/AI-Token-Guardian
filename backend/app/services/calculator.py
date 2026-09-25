@@ -84,7 +84,6 @@ def extract_and_clean_math(expression: str) -> str:
     cleaned = expression.strip()
     cleaned = cleaned.replace("$", "")
 
-    # Normalize natural language operators to standard math symbols
     nlp_replacements = [
         (r'\bmultiplied\s+by\b', '*'),
         (r'\bmultiply\s+by\b', '*'),
@@ -106,7 +105,6 @@ def extract_and_clean_math(expression: str) -> str:
         pct_val, base_val = match_pct.groups()
         return f"({pct_val} / 100) * {base_val}"
 
-    # First check if the cleaned expression is already a valid arithmetic expression
     for prefix in ["calculate", "what is", "compute", "eval", "evaluate", "solve for x in", "solve"]:
         if cleaned.lower().startswith(prefix):
             cleaned = cleaned[len(prefix):].strip()
@@ -118,7 +116,6 @@ def extract_and_clean_math(expression: str) -> str:
     except SyntaxError:
         pass
 
-    # Extract arithmetic sub-expression if embedded in text (e.g. "explain crewai then solve 27 * 43")
     arith_match = re.search(r'([\d\.\s\+\-\*\/\%\(\)]+[\+\-\*\/\%][\d\.\s\+\-\*\/\%\(\)]+)', cleaned)
     if arith_match:
         cand = arith_match.group(1).strip()
@@ -140,7 +137,6 @@ def extract_and_clean_math(expression: str) -> str:
     return cleaned
 
 def evaluate_expression(expression: str) -> Dict[str, Any]:
-    # Try solving simple equation first (e.g. x + 5 = 2)
     eq_res = solve_simple_equation(expression)
     if eq_res:
         return eq_res

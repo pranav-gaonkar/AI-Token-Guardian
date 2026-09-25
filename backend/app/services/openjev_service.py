@@ -203,10 +203,11 @@ def apply_fallback_rules(task: str, reason: str) -> JevDecisionResponse:
 
     search_words = ["weather", "current", "stock", "price", "latest", "find", "search", "today", "news"]
     is_search = any(w in t_lower for w in search_words)
+    has_explanation = any(w in t_lower for w in ["explain", "why", "how does", "describe", "detail"])
 
     if is_calc and not is_search:
         required_tool = "calculator"
-        needs_llm = False if len(t_lower) < 30 and not ("explain" in t_lower or "why" in t_lower) else True
+        needs_llm = False if len(t_lower) < 30 and not has_explanation else True
         needs_ext = False
     elif is_search:
         required_tool = "web_search"
