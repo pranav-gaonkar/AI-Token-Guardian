@@ -38,7 +38,7 @@ export default function ExecutionTrace({ trace }) {
                 </div>
 
                 <div className="trace-latency">
-                  {step.latency_ms > 0 ? `${step.latency_ms} ms` : '0 ms'}
+                  {step.status === 'skipped' ? 'Skipped (0 ms)' : step.latency_ms > 0 ? (step.latency_ms < 0.5 ? '< 0.5 ms' : `${step.latency_ms} ms`) : '< 0.5 ms'}
                 </div>
               </div>
 

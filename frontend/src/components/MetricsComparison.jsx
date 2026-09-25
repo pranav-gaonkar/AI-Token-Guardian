@@ -43,6 +43,12 @@ Built using System One JEV Decision Framework + Multi-Provider LLM Router (Groq 
     setTimeout(() => setCopied(false), 3000);
   };
 
+  const formatMs = (ms) => {
+    if (ms === 0 || ms === 0.0) return '< 0.5 ms';
+    if (ms < 1.0) return `${ms.toFixed(1)} ms`;
+    return `${ms} ms`;
+  };
+
   const maxTokens = Math.max(1, naive.total_estimated_tokens, jev.total_estimated_tokens);
   const naiveTokenWidth = Math.min(100, Math.max(10, (naive.total_estimated_tokens / maxTokens) * 100));
   const jevTokenWidth = Math.min(100, Math.max(5, (jev.total_estimated_tokens / maxTokens) * 100));
@@ -132,13 +138,13 @@ Built using System One JEV Decision Framework + Multi-Provider LLM Router (Groq 
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '0.25rem' }}>
             <span>Execution Latency (ms)</span>
-            <span>Naive: <strong>{naive.latency_ms}ms</strong> vs Jev: <strong style={{ color: 'var(--cyan-accent)' }}>{jev.latency_ms}ms</strong></span>
+            <span>Naive: <strong>{formatMs(naive.latency_ms)}</strong> vs Jev: <strong style={{ color: 'var(--cyan-accent)' }}>{formatMs(jev.latency_ms)}</strong></span>
           </div>
           <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-            <div style={{ width: `${naiveLatencyWidth}%`, background: 'rgba(244, 63, 94, 0.7)', height: '100%', borderRadius: '4px' }} title={`Naive Latency: ${naive.latency_ms}ms`}></div>
+            <div style={{ width: `${naiveLatencyWidth}%`, background: 'rgba(244, 63, 94, 0.7)', height: '100%', borderRadius: '4px' }} title={`Naive Latency: ${formatMs(naive.latency_ms)}`}></div>
           </div>
           <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden', marginTop: '4px' }}>
-            <div style={{ width: `${jevLatencyWidth}%`, background: 'var(--cyan-accent)', height: '100%', borderRadius: '4px' }} title={`Jev Latency: ${jev.latency_ms}ms`}></div>
+            <div style={{ width: `${jevLatencyWidth}%`, background: 'var(--cyan-accent)', height: '100%', borderRadius: '4px' }} title={`Jev Latency: ${formatMs(jev.latency_ms)}`}></div>
           </div>
         </div>
       </div>
@@ -177,7 +183,7 @@ Built using System One JEV Decision Framework + Multi-Provider LLM Router (Groq 
             </div>
             <div className="comp-metric-row" style={{ borderBottom: 'none', color: 'var(--text-muted)' }}>
               <span>Total Latency:</span>
-              <span>{naive.latency_ms} ms</span>
+              <span>{formatMs(naive.latency_ms)}</span>
             </div>
           </div>
         </div>
@@ -217,7 +223,7 @@ Built using System One JEV Decision Framework + Multi-Provider LLM Router (Groq 
             </div>
             <div className="comp-metric-row" style={{ borderBottom: 'none', color: 'var(--text-muted)' }}>
               <span>Total Latency:</span>
-              <span>{jev.latency_ms} ms</span>
+              <span>{formatMs(jev.latency_ms)}</span>
             </div>
           </div>
         </div>

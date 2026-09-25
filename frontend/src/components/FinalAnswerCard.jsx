@@ -58,9 +58,11 @@ export default function FinalAnswerCard({ result, toolResults }) {
         </div>
       )}
 
-      <div className="output-box">
-        {result.final_answer}
-      </div>
+      {(result.execution_plan?.use_llm || (!toolResults?.calculator && !toolResults?.web_search)) && (
+        <div className="output-box">
+          {result.final_answer}
+        </div>
+      )}
     </div>
   );
 }

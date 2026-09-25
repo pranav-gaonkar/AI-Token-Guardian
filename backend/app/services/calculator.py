@@ -1,6 +1,6 @@
 import ast
 import operator as op
-from typing import Dict, Any, Union
+from typing import Dict, Any, Union, Optional
 
 OPERATORS = {
     ast.Add: op.add,
@@ -49,9 +49,56 @@ def eval_node(node: ast.AST) -> Union[int, float]:
 
 import re
 
+def solve_simple_equation(expr: str) -> Optional[Dict[str, Any]]:
+    m = re.search(r'([+-]?\s*\d*\.?\d*)\s*\*?\s*([a-zA-Z])\s*([+-]\s*\d+\.?\d*)?\s*=\s*([+-]?\s*\d+\.?\d*)', expr)
+    if m:
+        coef_str, var, const_str, rhs_str = m.groups()
+        var = var or "x"
+        coef_raw = coef_str.replace(" ", "") if coef_str else ""
+        if coef_raw == "" or coef_raw == "+":
+            coef = 1.0
+        elif coef_raw == "-":
+            coef = -1.0
+        else:
+            try:
+                coef = float(coef_raw)
+            except ValueError:
+                coef = 1.0
+        
+        const = float(const_str.replace(" ", "")) if const_str else 0.0
+        rhs = float(rhs_str.replace(" ", "")) if rhs_str else 0.0
+        
+        if coef != 0:
+            val = (rhs - const) / coef
+            val = int(val) if val.is_integer() else round(val, 4)
+            eq_str = m.group(0).strip()
+            return {
+                "success": True,
+                "expression": eq_str,
+                "result": val,
+                "formatted_result": f"{var} = {val}"
+            }
+    return None
+
 def extract_and_clean_math(expression: str) -> str:
     cleaned = expression.strip()
     cleaned = cleaned.replace("$", "")
+
+    # Normalize natural language operators to standard math symbols
+    nlp_replacements = [
+        (r'\bmultiplied\s+by\b', '*'),
+        (r'\bmultiply\s+by\b', '*'),
+        (r'\bmultiplied\b', '*'),
+        (r'\btimes\b', '*'),
+        (r'\bdivided\s+by\b', '/'),
+        (r'\bdivide\s+by\b', '/'),
+        (r'\bdivided\b', '/'),
+        (r'\bplus\b', '+'),
+        (r'\badded\s+to\b', '+'),
+        (r'\bminus\b', '-'),
+    ]
+    for pattern, repl in nlp_replacements:
+        cleaned = re.sub(pattern, repl, cleaned, flags=re.IGNORECASE)
 
     pattern_pct_of = re.compile(r'(\d+(?:\.\d+)?)\s*%\s*(?:of|\*|\s)\s*(\d+(?:\.\d+)?)', re.IGNORECASE)
     match_pct = pattern_pct_of.search(cleaned)
@@ -59,10 +106,27 @@ def extract_and_clean_math(expression: str) -> str:
         pct_val, base_val = match_pct.groups()
         return f"({pct_val} / 100) * {base_val}"
 
-    for prefix in ["calculate", "what is", "compute", "eval", "evaluate"]:
+    # First check if the cleaned expression is already a valid arithmetic expression
+    for prefix in ["calculate", "what is", "compute", "eval", "evaluate", "solve for x in", "solve"]:
         if cleaned.lower().startswith(prefix):
             cleaned = cleaned[len(prefix):].strip()
             break
+
+    try:
+        ast.parse(cleaned, mode='eval')
+        return cleaned
+    except SyntaxError:
+        pass
+
+    # Extract arithmetic sub-expression if embedded in text (e.g. "explain crewai then solve 27 * 43")
+    arith_match = re.search(r'([\d\.\s\+\-\*\/\%\(\)]+[\+\-\*\/\%][\d\.\s\+\-\*\/\%\(\)]+)', cleaned)
+    if arith_match:
+        cand = arith_match.group(1).strip()
+        try:
+            ast.parse(cand, mode='eval')
+            return cand
+        except SyntaxError:
+            pass
 
     for stop_kw in [" and ", ". ", ", ", ";", " explain", " showing", " then "]:
         if stop_kw in cleaned.lower():
@@ -76,6 +140,11 @@ def extract_and_clean_math(expression: str) -> str:
     return cleaned
 
 def evaluate_expression(expression: str) -> Dict[str, Any]:
+    # Try solving simple equation first (e.g. x + 5 = 2)
+    eq_res = solve_simple_equation(expression)
+    if eq_res:
+        return eq_res
+
     cleaned = extract_and_clean_math(expression)
 
     if not cleaned:

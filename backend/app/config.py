@@ -62,6 +62,11 @@ class Settings:
         return os.getenv("GEMINI_API_KEY", "").strip()
 
     @property
+    def GEMINI_MODEL(self) -> str:
+        _reload_env()
+        return os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite").strip()
+
+    @property
     def has_openai_key(self) -> bool:
         return bool(self.OPENAI_API_KEY)
 

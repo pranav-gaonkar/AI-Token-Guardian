@@ -61,9 +61,9 @@ graph TD
 | **Frontend** | React 18, Vite, Vanilla CSS | Interactive dashboard with real-time execution trace, bar charts & 1-click LinkedIn export |
 | **Backend API** | FastAPI, Uvicorn, Python 3.12 | Async router, multi-provider dispatch, trace collector, and fallback handler |
 | **Decision Layer** | Sub-ms OpenJEV Fast-Path Engine | Intent classification (`calculator`, `web_search`, `needs_llm`, `needs_external_info`) |
-| **Execution Tools** | Python AST, DDG Search | Zero-LLM math computation and web information retrieval |
+| **Execution Tools** | Python AST, Open-Meteo & DDG Search | Zero-LLM math & natural language arithmetic, live satellite weather & web search |
 | **LLM Providers** | **Groq LPU** (`openai/gpt-oss-20b`) | Ultra-fast hardware-accelerated LLM generation |
-| | **Google Gemini** (`gemini-1.5-flash`) | Free-tier capable generative model for zero-cost testing |
+| | **Google Gemini** (`gemini-3.5-flash-lite`) | Active free-tier / pay-as-you-go generative model with auto-fallback |
 | | **OpenAI** (`gpt-4o-mini` / `gpt-4o`) | Commercial frontier LLM provider |
 | | **Frontier LLM Sim** | Benchmark mode simulating frontier LLM latency & token costs |
 
@@ -75,7 +75,8 @@ The system includes a side-by-side comparison engine (`POST /api/compare`):
 
 | Scenario / Request | Naive Unbounded Agent | Token Guardian Agent | Efficiency Gain |
 | :--- | :--- | :--- | :--- |
-| **Pure Math Task** (`27 * 43`) | Always calls LLM (~1.8s, ~220 tokens) | Routes to AST Calculator | **100% Token Savings** (0.0ms Latency, 0 LLM Calls) |
+| **Pure Math Task** (`25 multiplied by 2`) | Always calls LLM (~1.8s, ~220 tokens) | Routes to AST Calculator | **100% Token Savings** (~2ms Latency, 0 LLM Calls) |
+| **Direct Factual Search** (`Weather in Tokyo`) | Invokes LLM synthesis (~4.0s, ~220 tokens) | Direct Card Output (LLM Bypassed) | **100% Token Savings** (~750ms Latency, 0 LLM Calls) |
 | **Compound Request** (`Calculate 27 * 43 & explain interest`) | Double overhead (~2.6s, ~407 tokens) | Bounded tool + LLM (~1.8s, ~308 tokens) | **~30% Faster Latency & ~25% Token Reduction** |
 | **Conceptual Query** (`TCP vs UDP`) | Speculatively runs tools + LLM | Bypasses tools, calls LLM directly | **50% Tool Reduction** |
 

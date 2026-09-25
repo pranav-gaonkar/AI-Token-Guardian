@@ -13,7 +13,11 @@ _http_client: Optional[httpx.AsyncClient] = None
 def get_fastpath_decision(task: str) -> Optional[JevDecisionResponse]:
     t_lower = task.lower().strip()
     
-    math_words = ["calculate", "multiply", "divide", "plus", "minus", "sum", "what is"]
+    math_words = [
+        "calculate", "multiply", "multiplied", "times", "divide", "divided",
+        "plus", "minus", "sum", "add", "added", "subtract", "subtracted",
+        "product", "difference", "quotient", "what is", "sqrt", "power"
+    ]
     has_digits = any(char.isdigit() for char in task)
     has_operators = any(op in task for op in ["*", "/", "+", "%"])
     is_calc = (any(w in t_lower for w in math_words) and has_digits) or (has_digits and has_operators)
@@ -37,13 +41,14 @@ def get_fastpath_decision(task: str) -> Optional[JevDecisionResponse]:
         )
 
     if is_search and not is_calc:
+        needs_llm = has_explanation or ("summarize" in t_lower or "analyze" in t_lower)
         return JevDecisionResponse(
             needs_external_information=True,
             required_tool="web_search",
-            needs_llm=True,
+            needs_llm=needs_llm,
             needs_verification=False,
-            task_complexity=0.6,
-            raw_answers={"fastpath": True, "required_tool": "web_search", "needs_llm": True},
+            task_complexity=0.3 if not needs_llm else 0.6,
+            raw_answers={"fastpath": True, "required_tool": "web_search", "needs_llm": needs_llm},
             decision_source="OpenJEV Fast-Path",
             fallback_occurred=False
         )
@@ -188,7 +193,11 @@ def parse_openjev_response(response_json: Dict[str, Any]) -> JevDecisionResponse
 def apply_fallback_rules(task: str, reason: str) -> JevDecisionResponse:
     t_lower = task.lower().strip()
     
-    math_words = ["calculate", "+", "*", "/", "-", "%", "sum", "multiply", "divide", "minus", "plus", "math"]
+    math_words = [
+        "calculate", "+", "*", "/", "-", "%", "sum", "multiply", "multiplied", "times",
+        "divide", "divided", "minus", "plus", "math", "add", "added", "subtract",
+        "subtracted", "product", "difference", "quotient", "sqrt", "power"
+    ]
     has_digits = any(char.isdigit() for char in task)
     is_calc = (any(w in t_lower for w in math_words) and has_digits) or (has_digits and any(op in task for op in ["*", "/", "+", "%"]))
 
@@ -201,7 +210,7 @@ def apply_fallback_rules(task: str, reason: str) -> JevDecisionResponse:
         needs_ext = False
     elif is_search:
         required_tool = "web_search"
-        needs_llm = True
+        needs_llm = has_explanation or ("summarize" in t_lower or "analyze" in t_lower)
         needs_ext = True
     else:
         required_tool = "none"

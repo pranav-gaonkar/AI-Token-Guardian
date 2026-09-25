@@ -13,9 +13,7 @@ def build_execution_plan(decision: JevDecisionResponse, task: str) -> ExecutionP
         logger.warning("Contradiction detected: No tools selected and needs_llm=False. Overriding use_llm to True.")
         use_llm = True
 
-    if use_search and not use_llm:
-        logger.info("Web search enabled; overriding needs_llm to True for result synthesis.")
-        use_llm = True
+
 
     return ExecutionPlan(
         use_calculator=use_calc,

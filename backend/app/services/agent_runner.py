@@ -93,12 +93,22 @@ async def run_jev_agent(task: str, provider: Optional[str] = None) -> AgentRunRe
         ))
         if "calculator" in tool_results and tool_results["calculator"].get("success"):
             final_answer = f"Result: {tool_results['calculator'].get('formatted_result')}"
+        elif "web_search" in tool_results:
+            s_res = tool_results["web_search"]
+            results = s_res.get("results", [])
+            if results:
+                snippets = " | ".join([f"{r.get('title')}: {r.get('snippet')}" for r in results[:2]])
+                final_answer = f"Direct Search Card (LLM Bypassed): {snippets}"
+            else:
+                final_answer = f"Result: {tool_results}"
         elif tool_results:
             final_answer = f"Result: {tool_results}"
         else:
             final_answer = "Task resolved without LLM intervention."
 
     total_latency = (time.time() - total_start) * 1000
+    if total_latency > 0 and total_latency < 0.5:
+        total_latency = 0.5
 
     metrics = MetricStats(
         total_workflow_steps=len([t for t in trace if t.status in ["completed", "fallback"]]),
