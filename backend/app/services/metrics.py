@@ -13,7 +13,8 @@ def calculate_comparison_metrics(
 
     token_saved = n_m.total_estimated_tokens - j_m.total_estimated_tokens
     if n_m.total_estimated_tokens > 0:
-        token_reduction_pct = round(((n_m.total_estimated_tokens - j_m.total_estimated_tokens) / n_m.total_estimated_tokens) * 100.0, 2)
+        raw_pct = ((n_m.total_estimated_tokens - j_m.total_estimated_tokens) / n_m.total_estimated_tokens) * 100.0
+        token_reduction_pct = max(0.0, round(raw_pct, 2))
     else:
         token_reduction_pct = None
 

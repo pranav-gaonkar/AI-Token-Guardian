@@ -52,12 +52,39 @@ async def search_web(query: str) -> Dict[str, Any]:
 
 async def fetch_live_weather(query: str) -> Optional[Dict[str, Any]]:
     try:
-        words = query.split()
-        city = "Tokyo"
-        ignore = ["find", "the", "current", "weather", "in", "today", "now", "what", "is", "temperature", "forecast", "at", "for"]
-        location_words = [w for w in words if w.lower() not in ignore]
-        if location_words:
-            city = location_words[0].strip("?,.")
+        words = [w.strip("?,.!") for w in query.split()]
+        words_lower = [w.lower() for w in words]
+        
+        ignore = {
+            "give", "me", "summary", "summarize", "on", "and", "what", "are", "the", "major", "news",
+            "find", "current", "weather", "today", "now", "is", "temperature", "forecast", "show",
+            "get", "tell", "please", "detail", "overview", "report", "in", "at", "for"
+        }
+
+        city = None
+        for i, w_lower in enumerate(words_lower):
+            if w_lower == "weather" and i > 0 and words_lower[i - 1] not in ignore:
+                city = words[i - 1]
+                break
+
+        if not city:
+            for prep in ["in", "for", "at"]:
+                if prep in words_lower:
+                    idx = words_lower.index(prep)
+                    if idx + 1 < len(words) and words_lower[idx + 1] not in ignore:
+                        city = words[idx + 1]
+                        break
+
+        if not city:
+            candidates = [w for w in words if w.lower() not in ignore]
+            if candidates:
+                city = candidates[0]
+
+        if not city:
+            city = "Tokyo"
+
+        if city.lower() in ["bangalore", "blr"]:
+            city = "Bengaluru"
 
         async with httpx.AsyncClient(timeout=4.0) as client:
             geo_res = await client.get(f"https://geocoding-api.open-meteo.com/v1/search?name={city}&count=1")

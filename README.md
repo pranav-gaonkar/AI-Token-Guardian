@@ -88,7 +88,21 @@ The system includes a side-by-side comparison engine (`POST /api/compare`):
 - Python 3.9+
 - Node.js 18+
 
-### 1. Environment Setup
+### Docker Quickstart (Recommended)
+
+Run the complete application (backend + frontend) using Docker Compose:
+
+```bash
+docker compose up --build
+```
+- **Dashboard**: `http://localhost:3000`
+- **Backend API**: `http://localhost:8000`
+
+---
+
+### Manual Setup
+
+#### 1. Environment Setup
 
 Copy `.env.example` to `.env` in the root folder:
 
@@ -110,7 +124,7 @@ OPENAI_API_KEY=your_openai_key_here
 LLM_PROVIDER=groq
 ```
 
-### 2. Run Backend
+#### 2. Run Backend
 
 ```bash
 cd backend
@@ -119,7 +133,7 @@ uvicorn app.main:app --port 8000 --reload
 ```
 Backend API will be active at `http://localhost:8000`. Interactive API docs at `http://localhost:8000/docs`.
 
-### 3. Run Frontend
+#### 3. Run Frontend
 
 In a new terminal:
 
@@ -128,7 +142,7 @@ cd frontend
 npm install
 npm run dev
 ```
-Dashboard will open at `http://localhost:5173`.
+Dashboard will open at `http://localhost:3000` (or `http://localhost:5173`).
 
 ---
 

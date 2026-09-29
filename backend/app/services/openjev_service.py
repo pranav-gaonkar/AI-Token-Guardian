@@ -25,7 +25,10 @@ def get_fastpath_decision(task: str) -> Optional[JevDecisionResponse]:
     search_words = ["weather", "current", "stock", "price", "latest", "today", "news"]
     is_search = any(w in t_lower for w in search_words)
 
-    has_explanation = any(w in t_lower for w in ["explain", "why", "how does", "describe", "detail"])
+    has_explanation = any(w in t_lower for w in [
+        "explain", "why", "how", "describe", "detail", "summary", "summarize",
+        "analyze", "analysis", "ai", "write", "generate", "overview", "report", "article", "paragraph"
+    ])
 
     if is_calc and not is_search:
         needs_llm = has_explanation or len(t_lower) > 60
@@ -41,7 +44,7 @@ def get_fastpath_decision(task: str) -> Optional[JevDecisionResponse]:
         )
 
     if is_search and not is_calc:
-        needs_llm = has_explanation or ("summarize" in t_lower or "analyze" in t_lower)
+        needs_llm = has_explanation or len(t_lower) > 60
         return JevDecisionResponse(
             needs_external_information=True,
             required_tool="web_search",
@@ -203,7 +206,10 @@ def apply_fallback_rules(task: str, reason: str) -> JevDecisionResponse:
 
     search_words = ["weather", "current", "stock", "price", "latest", "find", "search", "today", "news"]
     is_search = any(w in t_lower for w in search_words)
-    has_explanation = any(w in t_lower for w in ["explain", "why", "how does", "describe", "detail"])
+    has_explanation = any(w in t_lower for w in [
+        "explain", "why", "how", "describe", "detail", "summary", "summarize",
+        "analyze", "analysis", "ai", "write", "generate", "overview", "report", "article", "paragraph"
+    ])
 
     if is_calc and not is_search:
         required_tool = "calculator"
@@ -211,7 +217,7 @@ def apply_fallback_rules(task: str, reason: str) -> JevDecisionResponse:
         needs_ext = False
     elif is_search:
         required_tool = "web_search"
-        needs_llm = has_explanation or ("summarize" in t_lower or "analyze" in t_lower)
+        needs_llm = has_explanation or len(t_lower) > 60
         needs_ext = True
     else:
         required_tool = "none"

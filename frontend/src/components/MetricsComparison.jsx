@@ -59,30 +59,9 @@ Built using System One JEV Decision Framework + Multi-Provider LLM Router (Groq 
 
   return (
     <div className="card">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
-        <div className="card-title" style={{ margin: 0 }}>
-          <BarChart3 size={18} style={{ color: 'var(--emerald-accent)' }} />
-          Measured Comparison: Naive Baseline vs Jev Decision Agent
-        </div>
-
-        <button
-          type="button"
-          className="pill-btn"
-          onClick={handleCopyPost}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            background: copied ? 'rgba(16, 185, 129, 0.2)' : 'rgba(99, 102, 241, 0.15)',
-            borderColor: copied ? 'var(--emerald-accent)' : 'var(--border-highlight)',
-            color: copied ? 'var(--emerald-accent)' : '#fff',
-            fontWeight: '600',
-            padding: '0.4rem 0.85rem'
-          }}
-        >
-          {copied ? <Check size={14} /> : <Share2 size={14} />}
-          {copied ? 'Copied LinkedIn Snippet!' : 'Copy LinkedIn Post Snippet'}
-        </button>
+      <div className="card-title" style={{ marginBottom: '1rem' }}>
+        <BarChart3 size={18} style={{ color: 'var(--emerald-accent)' }} />
+        Measured Comparison: Naive Baseline vs Jev Decision Agent
       </div>
 
       <div className="savings-banner">
@@ -162,7 +141,7 @@ Built using System One JEV Decision Framework + Multi-Provider LLM Router (Groq 
               <span>{naive.openjev_calls}</span>
             </div>
             <div className="comp-metric-row">
-              <span>Groq / LLM Calls:</span>
+              <span>LLM Calls:</span>
               <span style={{ color: 'var(--rose-accent)', fontWeight: 'bold' }}>{naive.groq_calls}</span>
             </div>
             <div className="comp-metric-row">
@@ -200,7 +179,7 @@ Built using System One JEV Decision Framework + Multi-Provider LLM Router (Groq 
               <span style={{ color: 'var(--cyan-accent)' }}>{jev.openjev_calls}</span>
             </div>
             <div className="comp-metric-row">
-              <span>Groq / LLM Calls:</span>
+              <span>LLM Calls:</span>
               <span style={{ color: jev.groq_calls === 0 ? 'var(--emerald-accent)' : '#fff', fontWeight: 'bold' }}>
                 {jev.groq_calls} {jev.groq_calls === 0 ? '(Avoided!)' : ''}
               </span>

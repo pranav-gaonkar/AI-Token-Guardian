@@ -9,11 +9,8 @@ export default function Header({ healthConfig }) {
   let llmLabel = 'Synthetic Mode';
   let llmActive = false;
 
-  if (hasOpenAI) {
-    llmLabel = `OpenAI: ${healthConfig?.openai_model || 'gpt-4o-mini'}`;
-    llmActive = true;
-  } else if (hasGroq) {
-    llmLabel = `Groq LLM: ${healthConfig?.groq_model || 'Active'}`;
+  if (hasOpenAI || hasGroq) {
+    llmLabel = 'LLM Engine: Active';
     llmActive = true;
   }
 
