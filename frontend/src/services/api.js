@@ -35,3 +35,16 @@ export async function compareAgentTask(task, provider = 'groq') {
   }
   return res.json();
 }
+
+export async function runBenchmark(provider = 'groq', runs = 2) {
+  const res = await fetch('/api/benchmark', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ task: 'benchmark', provider, runs })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Benchmark request failed' }));
+    throw new Error(err.detail || 'Failed to run benchmark');
+  }
+  return res.json();
+}

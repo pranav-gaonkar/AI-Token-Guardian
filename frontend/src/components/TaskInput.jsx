@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, GitCompare, Sparkles } from 'lucide-react';
+import { Play, GitCompare, Sparkles, BarChart3 } from 'lucide-react';
 
 export default function TaskInput({
   task,
@@ -8,6 +8,7 @@ export default function TaskInput({
   setProvider,
   onRun,
   onCompare,
+  onBenchmark,
   examples,
   loadingMode
 }) {
@@ -113,8 +114,32 @@ export default function TaskInput({
               </>
             )}
           </button>
+
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={onBenchmark}
+            disabled={isLoading}
+            style={loadingMode !== 'benchmark' ? {
+              borderColor: 'rgba(99, 102, 241, 0.3)',
+              background: 'rgba(99, 102, 241, 0.08)'
+            } : {}}
+          >
+            {loadingMode === 'benchmark' ? (
+              <>
+                <span className="spinner"></span>
+                Running Full Benchmark Suite...
+              </>
+            ) : (
+              <>
+                <BarChart3 size={16} />
+                Run Full Benchmark (All 5 Categories)
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
   );
 }
+

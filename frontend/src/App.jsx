@@ -5,7 +5,8 @@ import DecisionCard from './components/DecisionCard';
 import ExecutionTrace from './components/ExecutionTrace';
 import FinalAnswerCard from './components/FinalAnswerCard';
 import MetricsComparison from './components/MetricsComparison';
-import { checkHealth, fetchExamples, runAgentTask, compareAgentTask } from './services/api';
+import BenchmarkDashboard from './components/BenchmarkDashboard';
+import { checkHealth, fetchExamples, runAgentTask, compareAgentTask, runBenchmark } from './services/api';
 
 export default function App() {
   const [task, setTask] = useState('Calculate 27 * 43.');
@@ -17,6 +18,7 @@ export default function App() {
 
   const [runResult, setRunResult] = useState(null);
   const [comparisonResult, setComparisonResult] = useState(null);
+  const [benchmarkResult, setBenchmarkResult] = useState(null);
 
   useEffect(() => {
     checkHealth()
@@ -33,6 +35,7 @@ export default function App() {
     setLoadingMode('run');
     setError(null);
     setComparisonResult(null);
+    setBenchmarkResult(null);
 
     try {
       const res = await runAgentTask(task, provider);
@@ -48,6 +51,7 @@ export default function App() {
     if (!task.trim()) return;
     setLoadingMode('compare');
     setError(null);
+    setBenchmarkResult(null);
 
     try {
       const res = await compareAgentTask(task, provider);
@@ -55,6 +59,22 @@ export default function App() {
       setRunResult(res.optimized_jev);
     } catch (err) {
       setError(err.message || 'Error running comparison');
+    } finally {
+      setLoadingMode(null);
+    }
+  };
+
+  const handleBenchmark = async () => {
+    setLoadingMode('benchmark');
+    setError(null);
+    setComparisonResult(null);
+    setRunResult(null);
+
+    try {
+      const res = await runBenchmark(provider, 2);
+      setBenchmarkResult(res);
+    } catch (err) {
+      setError(err.message || 'Error running benchmark');
     } finally {
       setLoadingMode(null);
     }
@@ -72,6 +92,7 @@ export default function App() {
           setProvider={setProvider}
           onRun={handleRun}
           onCompare={handleCompare}
+          onBenchmark={handleBenchmark}
           examples={examples}
           loadingMode={loadingMode}
         />
@@ -86,11 +107,15 @@ export default function App() {
           </div>
         )}
 
+        {benchmarkResult && (
+          <BenchmarkDashboard benchmarkData={benchmarkResult} />
+        )}
+
         {comparisonResult && (
           <MetricsComparison comparisonData={comparisonResult} />
         )}
 
-        {runResult && (
+        {runResult && !benchmarkResult && (
           <div className="grid-2col">
             <div>
               <DecisionCard decision={runResult.jev_decision} />

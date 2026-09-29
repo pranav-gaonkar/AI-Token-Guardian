@@ -110,17 +110,23 @@ async def run_jev_agent(task: str, provider: Optional[str] = None) -> AgentRunRe
     if total_latency > 0 and total_latency < 0.5:
         total_latency = 0.5
 
+    token_src = "zero_llm_mode" if not plan.use_llm else tokens.get("token_source", "estimated")
+    is_est = False if not plan.use_llm else tokens.get("is_estimated", True)
+
     metrics = MetricStats(
         total_workflow_steps=len([t for t in trace if t.status in ["completed", "fallback"]]),
-        openjev_calls=0 if jev_decision.fallback_occurred else 1,
-        groq_calls=groq_calls,
-        tool_calls=tool_calls,
+        openjev_calls=0.0 if jev_decision.fallback_occurred else 1.0,
+        groq_calls=float(groq_calls),
+        tool_calls=float(tool_calls),
         estimated_input_tokens=input_tokens,
         estimated_output_tokens=output_tokens,
         total_estimated_tokens=input_tokens + output_tokens,
         latency_ms=round(total_latency, 2),
+        min_latency_ms=round(total_latency, 2),
+        max_latency_ms=round(total_latency, 2),
         fallback_occurred=jev_decision.fallback_occurred,
-        is_estimated=True
+        is_estimated=is_est,
+        token_source=token_src
     )
 
     return AgentRunResult(
@@ -194,15 +200,18 @@ async def run_naive_agent(task: str, provider: Optional[str] = None) -> AgentRun
 
     metrics = MetricStats(
         total_workflow_steps=len([t for t in trace if t.status == "completed"]),
-        openjev_calls=0,
-        groq_calls=1,
-        tool_calls=tool_calls,
+        openjev_calls=0.0,
+        groq_calls=1.0,
+        tool_calls=float(tool_calls),
         estimated_input_tokens=tokens.get("prompt_tokens", 0),
         estimated_output_tokens=tokens.get("completion_tokens", 0),
         total_estimated_tokens=tokens.get("total_tokens", 0),
         latency_ms=round(total_latency, 2),
+        min_latency_ms=round(total_latency, 2),
+        max_latency_ms=round(total_latency, 2),
         fallback_occurred=False,
-        is_estimated=True
+        is_estimated=tokens.get("is_estimated", True),
+        token_source=tokens.get("token_source", "estimated")
     )
 
     return AgentRunResult(

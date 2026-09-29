@@ -84,7 +84,9 @@ async def generate_with_llm(
     tokens = {
         "prompt_tokens": len(context_str.split()) * 2,
         "completion_tokens": len(mock_output.split()) * 2,
-        "total_tokens": (len(context_str.split()) + len(mock_output.split())) * 2
+        "total_tokens": (len(context_str.split()) + len(mock_output.split())) * 2,
+        "is_estimated": True,
+        "token_source": "estimated"
     }
     return mock_output, tokens, latency_ms
 
@@ -116,7 +118,9 @@ async def _call_openai(system_prompt: str, context_str: str, start_time: float) 
                 tokens = {
                     "prompt_tokens": usage.get("prompt_tokens", 0),
                     "completion_tokens": usage.get("completion_tokens", 0),
-                    "total_tokens": usage.get("total_tokens", 0)
+                    "total_tokens": usage.get("total_tokens", 0),
+                    "is_estimated": False,
+                    "token_source": "provider_reported"
                 }
                 return output_text, tokens, latency_ms
             else:
@@ -160,7 +164,9 @@ async def _call_gemini(system_prompt: str, context_str: str, start_time: float) 
                         tokens = {
                             "prompt_tokens": meta.get("promptTokenCount", 0),
                             "completion_tokens": meta.get("candidatesTokenCount", 0),
-                            "total_tokens": meta.get("totalTokenCount", 0)
+                            "total_tokens": meta.get("totalTokenCount", 0),
+                            "is_estimated": False,
+                            "token_source": "provider_reported"
                         }
                         logger.info(f"Successfully called Gemini model: {model_name}")
                         return (output_text, tokens, latency_ms), None
@@ -202,7 +208,9 @@ async def _call_groq(system_prompt: str, context_str: str, start_time: float, is
         tokens = {
             "prompt_tokens": getattr(usage, "prompt_tokens", 0) if usage else 0,
             "completion_tokens": getattr(usage, "completion_tokens", 0) if usage else 0,
-            "total_tokens": getattr(usage, "total_tokens", 0) if usage else 0
+            "total_tokens": getattr(usage, "total_tokens", 0) if usage else 0,
+            "is_estimated": False,
+            "token_source": "provider_reported"
         }
         
         return output_text, tokens, latency_ms
